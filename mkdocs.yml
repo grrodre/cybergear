@@ -1,0 +1,47 @@
+site_name: CyberGear Python Driver
+site_description: Python driver for the Xiaomi CyberGear brushless motor over CAN bus
+site_url: ""
+repo_url: ""
+docs_dir: docs
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - content.code.copy
+    - content.code.annotate
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.details
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Control modes: control-modes.md
+  - Feedback & polling: feedback.md
+  - Advanced: advanced.md
+  - Examples: examples.md
+  - Protocol reference: protocol.md

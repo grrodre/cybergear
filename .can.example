@@ -1,0 +1,8 @@
+# python-can configuration file
+# Copy to ~/.can and edit to match your hardware.
+# Docs: https://python-can.readthedocs.io/en/stable/configuration.html
+
+[default]
+interface = socketcan
+channel = can0
+bitrate = 1000000
