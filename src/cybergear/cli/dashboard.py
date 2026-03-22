@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import argparse
 import sys
-import time
 
 try:
     from textual.app import App, ComposeResult
-    from textual.widgets import Button, Footer, Header, Label
     from textual.containers import Horizontal, Vertical
+    from textual.widgets import Button, Footer, Header, Label
 except ImportError:
     print(
         'Error: dashboard requires the dashboard extra.\n'
@@ -25,7 +24,7 @@ from cybergear import CyberGearMotor, MotorFeedback
 def _row(label: str, value: str, unit: str = '', *, is_number: bool = False) -> str:
     """Rich markup for a key/value row."""
     val_color = '$accent' if is_number else '$secondary'
-    val_markup = f'[$text-muted]—[/]' if value == '—' else f'[{val_color}]{value}[/]'
+    val_markup = '[$text-muted]—[/]' if value == '—' else f'[{val_color}]{value}[/]'
     unit_markup = f' [$text-muted]{unit}[/]' if unit else ''
     return f'[$text-muted]{label}[/]  {val_markup}{unit_markup}'
 
@@ -37,7 +36,7 @@ class MotorInfoBox(Horizontal):
 
     _TABLE_FIELDS = [
         ('app_code_version', 'Firmware  '),
-        ('app_build_date',   'Build date'),
+        ('app_build_date', 'Build date'),
     ]
 
     def __init__(self, motor: CyberGearMotor) -> None:
@@ -63,35 +62,45 @@ class FeedbackBox(Vertical):
     MODES = {0: 'Reset', 1: 'Calibration', 2: 'Run'}
 
     def compose(self) -> ComposeResult:
-        yield Label(_row('Position   ', '—', 'rad',   is_number=True), id='fb-position')
+        yield Label(_row('Position   ', '—', 'rad', is_number=True), id='fb-position')
         yield Label(_row('Velocity   ', '—', 'rad/s', is_number=True), id='fb-velocity')
-        yield Label(_row('Torque     ', '—', 'Nm',    is_number=True), id='fb-torque')
-        yield Label(_row('Temperature', '—', '°C',    is_number=True), id='fb-temperature')
-        yield Label(_row('Mode       ', '—'),                          id='fb-mode')
-        yield Label(_row('Faults     ', '—'),                          id='fb-faults')
+        yield Label(_row('Torque     ', '—', 'Nm', is_number=True), id='fb-torque')
+        yield Label(_row('Temperature', '—', '°C', is_number=True), id='fb-temperature')
+        yield Label(_row('Mode       ', '—'), id='fb-mode')
+        yield Label(_row('Faults     ', '—'), id='fb-faults')
 
     def update_feedback(self, fb: MotorFeedback) -> None:
-        mode   = self.MODES.get(fb.mode, str(fb.mode))
+        mode = self.MODES.get(fb.mode, str(fb.mode))
         faults = fb.faults.has_fault
 
-        self.query_one('#fb-position',    Label).update(_row('Position   ', f'{fb.position:+.4f}',  'rad',   is_number=True))
-        self.query_one('#fb-velocity',    Label).update(_row('Velocity   ', f'{fb.velocity:+.4f}',  'rad/s', is_number=True))
-        self.query_one('#fb-torque',      Label).update(_row('Torque     ', f'{fb.torque:+.4f}',    'Nm',    is_number=True))
-        self.query_one('#fb-temperature', Label).update(_row('Temperature', f'{fb.temperature:.1f}','°C',    is_number=True))
-        self.query_one('#fb-mode',        Label).update(_row('Mode       ', mode))
+        self.query_one('#fb-position', Label).update(
+            _row('Position   ', f'{fb.position:+.4f}', 'rad', is_number=True)
+        )
+        self.query_one('#fb-velocity', Label).update(
+            _row('Velocity   ', f'{fb.velocity:+.4f}', 'rad/s', is_number=True)
+        )
+        self.query_one('#fb-torque', Label).update(
+            _row('Torque     ', f'{fb.torque:+.4f}', 'Nm', is_number=True)
+        )
+        self.query_one('#fb-temperature', Label).update(
+            _row('Temperature', f'{fb.temperature:.1f}', '°C', is_number=True)
+        )
+        self.query_one('#fb-mode', Label).update(_row('Mode       ', mode))
 
         fault_markup = '[$error]FAULT[/]' if faults else '[$success]OK[/]'
-        self.query_one('#fb-faults', Label).update(f'[$text-muted]Faults     [/]  {fault_markup}')
+        self.query_one('#fb-faults', Label).update(
+            f'[$text-muted]Faults     [/]  {fault_markup}'
+        )
 
 
 class ParametersBox(Vertical):
     BORDER_TITLE = 'Parameters'
 
     _FIELDS = [
-        ('v_bus',    'Bus voltage', 'V'),
+        ('v_bus', 'Bus voltage', 'V'),
         ('mech_pos', 'Mech pos   ', 'rad'),
         ('mech_vel', 'Mech vel   ', 'rad/s'),
-        ('iqf',      'Iq current ', 'A'),
+        ('iqf', 'Iq current ', 'A'),
         ('rotation', 'Rot (in)   ', ''),
     ]
 
@@ -108,7 +117,12 @@ class ParametersBox(Vertical):
         for key, label, unit in self._FIELDS:
             if key == name:
                 self.query_one(f'#param-{key}', Label).update(
-                    _row(label, f'{value:.4f}' if isinstance(value, float) else str(value), unit, is_number=True)
+                    _row(
+                        label,
+                        f'{value:.4f}' if isinstance(value, float) else str(value),
+                        unit,
+                        is_number=True,
+                    )
                 )
                 break
 
@@ -140,9 +154,9 @@ class QuickControlBox(Vertical):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == 'btn-move-pos':
-            self._motor.quick_move(6.2832) # 2*pi
+            self._motor.quick_move(6.2832)  # 2*pi
         elif event.button.id == 'btn-move-neg':
-            self._motor.quick_move(-6.2832) # -2*pi
+            self._motor.quick_move(-6.2832)  # -2*pi
         elif event.button.id == 'btn-stop':
             self._motor.quick_stop()
 
@@ -199,10 +213,14 @@ def main() -> None:
         prog='cybergear-dashboard',
         description='Live CyberGear motor dashboard.',
     )
-    parser.add_argument('--interface', '-i', help='python-can interface (e.g. socketcan)')
-    parser.add_argument('--channel',   '-c', help='CAN channel (e.g. can0)')
-    parser.add_argument('--bitrate',   '-b', type=int, help='CAN bitrate (e.g. 1000000)')
-    parser.add_argument('--can-id',    type=int, help='Motor CAN ID (auto-detected if omitted)')
+    parser.add_argument(
+        '--interface', '-i', help='python-can interface (e.g. socketcan)'
+    )
+    parser.add_argument('--channel', '-c', help='CAN channel (e.g. can0)')
+    parser.add_argument('--bitrate', '-b', type=int, help='CAN bitrate (e.g. 1000000)')
+    parser.add_argument(
+        '--can-id', type=int, help='Motor CAN ID (auto-detected if omitted)'
+    )
     args = parser.parse_args()
 
     bus_config: dict | None = None

@@ -18,7 +18,7 @@ If you run into any issues, feel free to open an issue.
 
 ## Features
 
-- **Four control modes**: operation (MIT-style), position, speed, and current
+- **Five control modes**: operation (MIT-style), position, speed, current, and quick-move
 - **Auto-scan**: discovers motors on the bus without needing to specify a CAN ID
 - **Async feedback**: `can.Notifier`-based listener delivers `MotorFeedback` snapshots without blocking
 - **Background polling**: portable parameter polling thread keeps properties up to date on any interface
@@ -262,8 +262,8 @@ for can_id, device_id in motors:
 | `emergency_brake()` | Cut torque immediately |
 | `motor_control(torque, position, velocity, kp, kd)` | MIT-style operation mode frame |
 | `quick_move(speed)` / `quick_stop()` | Simple velocity motion |
-| `set_zero_position()` | Set current position as zero |
-| `calibrate(callback)` | Trigger encoder calibration |
+| `reset_zero_position()` | Set current position as zero |
+| `encoder_calibration(timeout=30.0)` | Trigger encoder calibration; returns electrical offset (float) |
 | `run_mode` | Get/set run mode (`'operation'`, `'position'`, `'speed'`, `'current'`) |
 | `feedback` | Latest `MotorFeedback` snapshot |
 | `scan(bus_config, ...)` | Class method: scan bus for motors |

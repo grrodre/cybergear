@@ -9,12 +9,29 @@ def main() -> None:
         prog='cybergear-scan',
         description='Scan a CAN bus for connected CyberGear motors.',
     )
-    parser.add_argument('--interface', '-i', help='python-can interface (e.g. socketcan)')
+    parser.add_argument(
+        '--interface', '-i', help='python-can interface (e.g. socketcan)'
+    )
     parser.add_argument('--channel', '-c', help='CAN channel (e.g. can0)')
     parser.add_argument('--bitrate', '-b', type=int, help='CAN bitrate (e.g. 1000000)')
-    parser.add_argument('--host-id', type=lambda x: int(x, 0), default=0xFD, help='Host CAN ID (default: 0xFD)')
-    parser.add_argument('--timeout', type=float, default=0.5, help='Scan timeout in seconds (default: 0.5)')
-    parser.add_argument('--send-timeout', type=float, default=0.1, help='TX buffer timeout per frame in seconds (default: 0.1)')
+    parser.add_argument(
+        '--host-id',
+        type=lambda x: int(x, 0),
+        default=0xFD,
+        help='Host CAN ID (default: 0xFD)',
+    )
+    parser.add_argument(
+        '--timeout',
+        type=float,
+        default=0.5,
+        help='Scan timeout in seconds (default: 0.5)',
+    )
+    parser.add_argument(
+        '--send-timeout',
+        type=float,
+        default=0.1,
+        help='TX buffer timeout per frame in seconds (default: 0.1)',
+    )
     args = parser.parse_args()
 
     bus_config: dict | None = None

@@ -92,7 +92,7 @@ class _PollingThread(threading.Thread):
 class CyberGearMotor:
     """Python driver for the Xiaomi CyberGear brushless motor over CAN bus.
 
-    Supports four control modes:
+    Supports five control modes:
 
     - **Operation mode** (MIT-style): ``motor.motor_control(torque, position, velocity, kp, kd)``
     - **Position mode**: ``motor.run_mode = 'position'``, then ``motor.loc_ref = <rad>``
@@ -159,10 +159,26 @@ class CyberGearMotor:
                              on slow USB CAN adapters.
         :raises CybergearMotorInitException: If the motor does not respond within 1 s,
                                              or if auto-scan finds zero or multiple motors.
+
+        **Internal state dicts**
+
+        ``_parameters`` — values reported *by the motor* via poll responses.
+        Updated only when the motor echoes a value back. Represents confirmed
+        motor state; may lag behind a write by up to one poll interval.
+
+        ``_commanded`` — values *last sent* by the driver via write commands.
+        Updated immediately on every ``_write_parameter`` call, without waiting
+        for the motor to confirm. Used where a command depends on the most recent
+        value the user set (e.g. ``loc_ref`` prepending ``limit_spd``), so that
+        the commanded value is used instead of a potentially stale polled value.
         """
         self._send_timeout = send_timeout
         if can_id is None:
-            found = CyberGearMotor.scan(bus_config=bus_config, host_can_id=host_can_id, send_timeout=send_timeout)
+            found = CyberGearMotor.scan(
+                bus_config=bus_config,
+                host_can_id=host_can_id,
+                send_timeout=send_timeout,
+            )
             if not found:
                 raise CybergearMotorInitException(
                     'No CyberGear motors found on the CAN bus.'
@@ -191,6 +207,7 @@ class CyberGearMotor:
 
         self._feedback = MotorFeedback()
         self._parameters: dict[str, float | int] = {}
+        self._commanded: dict[str, float | int] = {}
         self._parameters_table: dict[str, float | int | str] = {}
         self._device_id: bytes | None = None
 
@@ -219,7 +236,11 @@ class CyberGearMotor:
         self.close()
 
     def close(self) -> None:
-        """Release all resources: stop polling, notifier, and CAN bus."""
+        """Release all resources: stop polling, notifier, and CAN bus.
+
+        The motor is NOT disabled before closing. If you want the motor to
+        stop holding position/torque on exit, call disable() first.
+        """
         self.stop_polling()
         self._notifier.stop()
         self._bus.shutdown()
@@ -301,8 +322,11 @@ class CyberGearMotor:
         self._feedback_listeners.append(fn)
 
     def remove_feedback_listener(self, fn: FeedbackListener) -> None:
-        """Unregister a previously added feedback listener."""
-        self._feedback_listeners.remove(fn)
+        """Unregister a previously added feedback listener. No-op if not registered."""
+        try:
+            self._feedback_listeners.remove(fn)
+        except ValueError:
+            pass
 
     def add_parameter_listener(self, fn: ParameterListener) -> None:
         """Register a callback invoked when a parameter read response arrives.
@@ -312,8 +336,11 @@ class CyberGearMotor:
         self._parameter_listeners.append(fn)
 
     def remove_parameter_listener(self, fn: ParameterListener) -> None:
-        """Unregister a previously added parameter listener."""
-        self._parameter_listeners.remove(fn)
+        """Unregister a previously added parameter listener. No-op if not registered."""
+        try:
+            self._parameter_listeners.remove(fn)
+        except ValueError:
+            pass
 
     def add_fault_listener(self, fn: FaultListener) -> None:
         """Register a callback invoked whenever the fault state changes.
@@ -324,8 +351,11 @@ class CyberGearMotor:
         self._fault_listeners.append(fn)
 
     def remove_fault_listener(self, fn: FaultListener) -> None:
-        """Unregister a previously added fault listener."""
-        self._fault_listeners.remove(fn)
+        """Unregister a previously added fault listener. No-op if not registered."""
+        try:
+            self._fault_listeners.remove(fn)
+        except ValueError:
+            pass
 
     # -------------------------------------------------------------------------
     # Polling
@@ -394,15 +424,17 @@ class CyberGearMotor:
         :param kp: Position gain, 0–500.
         :param kd: Velocity gain, 0–5.
         """
-        position_raw = self._float_to_uint(position, self.P_MIN, self.P_MAX, 16)
+        torque_raw = self._float_to_uint(torque, self.T_MIN, self.T_MAX, 16)
         data = (
-            struct.pack('>H', self._float_to_uint(velocity, self.V_MIN, self.V_MAX, 16))
+            struct.pack('>H', self._float_to_uint(position, self.P_MIN, self.P_MAX, 16))
+            + struct.pack(
+                '>H', self._float_to_uint(velocity, self.V_MIN, self.V_MAX, 16)
+            )
             + struct.pack('>H', self._float_to_uint(kp, self.KP_MIN, self.KP_MAX, 16))
             + struct.pack('>H', self._float_to_uint(kd, self.KD_MIN, self.KD_MAX, 16))
-            + struct.pack('>H', self._float_to_uint(torque, self.T_MIN, self.T_MAX, 16))
         )
         self._send_message(
-            CommunicationTypeCan.control_instructions, data, data2=position_raw
+            CommunicationTypeCan.control_instructions, data, data2=torque_raw
         )
 
     def quick_move(self, speed: float) -> None:
@@ -425,7 +457,7 @@ class CyberGearMotor:
 
     def reset_zero_position(self) -> None:
         """Set the current mechanical position as the new zero reference (lost on power-off)."""
-        self._send_message(CommunicationTypeCan.zero_position, [1, 1, 0, 0, 0, 0, 0, 0])
+        self._send_message(CommunicationTypeCan.zero_position, [1, 0, 0, 0, 0, 0, 0, 0])
 
     def return_zero_position(self) -> None:
         """Command the motor to return to the stored zero reference position."""
@@ -581,20 +613,22 @@ class CyberGearMotor:
 
     @property
     def cur_kp(self) -> float | None:
-        """Current loop proportional gain, last polled value."""
+        """Current loop proportional gain (0–200), last polled value."""
         return self._parameters.get(ParameterIndex.cur_kp.name)
 
     @cur_kp.setter
     def cur_kp(self, value: float) -> None:
+        """Set current loop proportional gain. Valid range: 0–200."""
         self._write_parameter(ParameterIndex.cur_kp, 'f', value)
 
     @property
     def cur_ki(self) -> float | None:
-        """Current loop integral gain, last polled value."""
+        """Current loop integral gain (0–200), last polled value."""
         return self._parameters.get(ParameterIndex.cur_ki.name)
 
     @cur_ki.setter
     def cur_ki(self, value: float) -> None:
+        """Set current loop integral gain. Valid range: 0–200."""
         self._write_parameter(ParameterIndex.cur_ki, 'f', value)
 
     @property
@@ -624,7 +658,10 @@ class CyberGearMotor:
         if ``limit_spd`` has not been polled yet, set it explicitly first.
         """
         self._warn_run_mode(RunMode.position)
-        limit = self._parameters.get(ParameterIndex.limit_spd.name)
+        limit = self._commanded.get(
+            ParameterIndex.limit_spd.name,
+            self._parameters.get(ParameterIndex.limit_spd.name),
+        )
         if limit is not None:
             self._write_parameter(ParameterIndex.limit_spd, 'f', limit)
         self._write_parameter(ParameterIndex.loc_ref, 'f', value)
@@ -686,29 +723,32 @@ class CyberGearMotor:
 
     @property
     def loc_kp(self) -> float | None:
-        """Position loop proportional gain, last polled value."""
+        """Position loop proportional gain (0–200), last polled value."""
         return self._parameters.get(ParameterIndex.loc_kp.name)
 
     @loc_kp.setter
     def loc_kp(self, value: float) -> None:
+        """Set position loop proportional gain. Valid range: 0–200."""
         self._write_parameter(ParameterIndex.loc_kp, 'f', value)
 
     @property
     def spd_kp(self) -> float | None:
-        """Speed loop proportional gain, last polled value."""
+        """Speed loop proportional gain (0–200), last polled value."""
         return self._parameters.get(ParameterIndex.spd_kp.name)
 
     @spd_kp.setter
     def spd_kp(self, value: float) -> None:
+        """Set speed loop proportional gain. Valid range: 0–200."""
         self._write_parameter(ParameterIndex.spd_kp, 'f', value)
 
     @property
     def spd_ki(self) -> float | None:
-        """Speed loop integral gain, last polled value."""
+        """Speed loop integral gain (0–200), last polled value."""
         return self._parameters.get(ParameterIndex.spd_ki.name)
 
     @spd_ki.setter
     def spd_ki(self, value: float) -> None:
+        """Set speed loop integral gain. Valid range: 0–200."""
         self._write_parameter(ParameterIndex.spd_ki, 'f', value)
 
     # -------------------------------------------------------------------------
@@ -762,6 +802,8 @@ class CyberGearMotor:
     ) -> None:
         data = struct.pack('2H', index.value, 0) + struct.pack(fmt, *values)
         self._send_message(CommunicationTypeCan.parameter_writing, data)
+        if isinstance(index, ParameterIndex) and values:
+            self._commanded[index.name] = values[0]
 
     def _warn_run_mode(self, expected: RunMode) -> None:
         raw = self._parameters.get(ParameterIndex.run_mode.name)

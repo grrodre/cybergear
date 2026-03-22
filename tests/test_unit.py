@@ -1,16 +1,25 @@
 """Unit tests for the CyberGear motor driver.
 
-Run with: pytest tests/
+Run with: pytest tests/test_unit.py
 """
 
+import importlib
+import io
 import struct
+import sys
+import time
 import unittest
 import unittest.mock
 from unittest.mock import MagicMock, patch
 
 import can
 
-from cybergear.can_definitions import CommunicationTypeCan, ParameterIndex, RunMode
+from cybergear.can_definitions import (
+    CommunicationTypeCan,
+    ParameterIndex,
+    ParameterTable,
+    RunMode,
+)
 from cybergear.cybergear import CyberGearMotor, FaultState, MotorFeedback
 from cybergear.exceptions import CybergearMotorInitException
 
@@ -332,6 +341,49 @@ class TestParameterReading(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# Parameter table parsing
+# ---------------------------------------------------------------------------
+
+
+class TestParameterTableParsing(unittest.TestCase):
+    def setUp(self):
+        self.motor, _ = _make_motor()
+
+    def test_parse_parameter_table_populates_parameters(self):
+        """Injecting a fragment-4 (numeric value) frame populates _parameters_table."""
+        # gear_ratio: ParameterTable index 0x200F, type 'f'
+        expected = 6.0
+        arb = (
+            int(CommunicationTypeCan.parameter_table)
+            | (4 << 16)  # fragment index 4 = numeric value
+            | (0x7F << 8)
+            | 0xFD
+        )
+        # data[0:2] = raw index, data[2:4] = padding, data[4:8] = float value
+        data = (
+            struct.pack('H', ParameterTable.gear_ratio.value)
+            + b'\x00\x00'
+            + struct.pack('f', expected)
+        )
+        msg = can.Message(arbitration_id=arb, data=data, is_extended_id=True)
+
+        self.motor._parse_parameter_table_message(msg)
+
+        self.assertAlmostEqual(
+            self.motor._parameters_table['gear_ratio'], expected, places=4
+        )
+
+    def test_parse_parameter_table_unknown_index_ignored(self):
+        """An unknown parameter index in a table frame is silently ignored."""
+        arb = int(CommunicationTypeCan.parameter_table) | (4 << 16) | (0x7F << 8) | 0xFD
+        data = struct.pack('H', 0xBEEF) + b'\x00\x00' + struct.pack('f', 1.0)
+        msg = can.Message(arbitration_id=arb, data=data, is_extended_id=True)
+
+        self.motor._parse_parameter_table_message(msg)  # must not raise
+        self.assertEqual(len(self.motor._parameters_table), 0)
+
+
+# ---------------------------------------------------------------------------
 # Validation
 # ---------------------------------------------------------------------------
 
@@ -378,6 +430,34 @@ class TestValidation(unittest.TestCase):
         self.motor.set_watchdog_timeout(500)
         self.motor._bus.send.assert_called()  # ty: ignore[unresolved-attribute]
 
+    def test_run_mode_invalid_logs_warning(self):
+        """Setting an unknown run_mode string logs a warning and does not send a frame."""
+        motor, mock_bus = _make_motor()
+        with self.assertLogs('cybergear', level='WARNING'):
+            motor.run_mode = 'invalid'
+        mock_bus.send.assert_not_called()
+
+    def test_spd_ref_in_wrong_mode_logs_warning(self):
+        """Setting spd_ref while not in speed mode logs a warning."""
+        motor, _ = _make_motor()
+        motor._parameters[ParameterIndex.run_mode.name] = RunMode.position.value
+        with self.assertLogs('cybergear', level='WARNING'):
+            motor.spd_ref = 5.0
+
+    def test_loc_ref_in_wrong_mode_logs_warning(self):
+        """Setting loc_ref while not in position mode logs a warning."""
+        motor, _ = _make_motor()
+        motor._parameters[ParameterIndex.run_mode.name] = RunMode.speed.value
+        with self.assertLogs('cybergear', level='WARNING'):
+            motor.loc_ref = 1.0
+
+    def test_iq_ref_in_wrong_mode_logs_warning(self):
+        """Setting iq_ref while not in current mode logs a warning."""
+        motor, _ = _make_motor()
+        motor._parameters[ParameterIndex.run_mode.name] = RunMode.speed.value
+        with self.assertLogs('cybergear', level='WARNING'):
+            motor.iq_ref = 1.0
+
 
 # ---------------------------------------------------------------------------
 # Init and context manager
@@ -416,6 +496,100 @@ class TestInit(unittest.TestCase):
         motor, _ = _make_motor()
         motor._device_id = None
         self.assertIsNone(motor.device_id)
+
+    def test_context_manager_cleanup_on_init_failure(self):
+        """close() shuts down the bus and notifier even when called after a partial init."""
+        motor, mock_bus = _make_motor()
+        motor._notifier = MagicMock()
+
+        motor.close()
+
+        motor._notifier.stop.assert_called_once()
+        mock_bus.shutdown.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# Error handling
+# ---------------------------------------------------------------------------
+
+
+class TestErrorHandling(unittest.TestCase):
+    def test_send_message_can_error_does_not_raise(self):
+        """A CanError on bus.send is caught and does not propagate to the caller."""
+        motor, mock_bus = _make_motor()
+        mock_bus.send.side_effect = can.CanError('simulated send failure')
+
+        motor.enable()  # must not raise
+
+    def test_send_message_can_error_state_unchanged(self):
+        """Motor state is not corrupted when a CAN send fails."""
+        motor, mock_bus = _make_motor()
+        mock_bus.send.side_effect = can.CanError('fail')
+
+        motor.enable()
+        motor.disable()  # motor is still usable; also must not raise
+
+    def test_parameter_listener_exception_does_not_propagate(self):
+        """An exception raised inside a parameter listener does not crash the driver."""
+        motor, _ = _make_motor()
+
+        def bad_listener(name, value):
+            raise RuntimeError('listener crash')
+
+        motor.add_parameter_listener(bad_listener)
+        motor._process_parameter_reading(_parameter_message(ParameterIndex.v_bus, 24.0))
+
+    def test_remove_feedback_listener_not_registered(self):
+        """Removing a listener that was never added does not raise."""
+        motor, _ = _make_motor()
+
+        def cb(fb):
+            pass
+
+        motor.remove_feedback_listener(cb)
+
+    def test_remove_parameter_listener_not_registered(self):
+        """Removing a parameter listener that was never added does not raise."""
+        motor, _ = _make_motor()
+
+        def cb(name, value):
+            pass
+
+        motor.remove_parameter_listener(cb)
+
+    def test_remove_fault_listener_not_registered(self):
+        """Removing a fault listener that was never added does not raise."""
+        motor, _ = _make_motor()
+
+        def cb(faults):
+            pass
+
+        motor.remove_fault_listener(cb)
+
+
+# ---------------------------------------------------------------------------
+# Polling thread
+# ---------------------------------------------------------------------------
+
+
+class TestPollingThread(unittest.TestCase):
+    def test_polling_thread_survives_failed_poll(self):
+        """Polling thread keeps running if a poll raises an exception."""
+        motor, mock_bus = _make_motor()
+        mock_bus.send.side_effect = can.CanError('poll fail')
+        motor.start_polling(0.05)
+        time.sleep(0.2)  # allow several poll cycles with failures
+        self.assertIsNotNone(motor._poller)
+        self.assertTrue(motor._poller.is_alive())
+        motor.stop_polling()
+
+    def test_stop_polling_thread_exits(self):
+        """stop_polling() causes the polling thread to exit cleanly."""
+        motor, _ = _make_motor()
+        motor.start_polling(0.05)
+        self.assertTrue(motor._poller.is_alive())
+        motor.stop_polling()
+        self.assertIsNone(motor._poller)
 
 
 # ---------------------------------------------------------------------------
@@ -469,6 +643,74 @@ class TestMotorFeedback(unittest.TestCase):
         self.assertEqual(fb.temperature, 0.0)
         self.assertEqual(fb.mode, 0)
         self.assertFalse(fb.faults.has_fault)
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+
+class TestCLI(unittest.TestCase):
+    def test_cli_scan_prints_motor(self):
+        """cybergear-scan prints a table row when a motor is found."""
+        from cybergear.cli import scan
+
+        with (
+            patch.object(CyberGearMotor, 'scan', return_value=[(1, b'\x01' * 8)]),
+            patch('sys.argv', ['cybergear-scan']),
+            patch('sys.stdout', new_callable=io.StringIO) as fake_out,
+        ):
+            scan.main()
+
+        output = fake_out.getvalue()
+        self.assertIn('1', output)
+        self.assertIn('01' * 8, output)
+
+    def test_cli_scan_no_motors(self):
+        """cybergear-scan exits with code 0 and prints 'No motors found' when none respond."""
+        from cybergear.cli import scan
+
+        with (
+            patch.object(CyberGearMotor, 'scan', return_value=[]),
+            patch('sys.argv', ['cybergear-scan']),
+            patch('sys.stdout', new_callable=io.StringIO) as fake_out,
+        ):
+            with self.assertRaises(SystemExit) as ctx:
+                scan.main()
+
+        self.assertEqual(ctx.exception.code, 0)
+        self.assertIn('No motors found', fake_out.getvalue())
+
+    def test_dashboard_missing_dependency_exits(self):
+        """Importing dashboard without textual installed calls sys.exit(1)."""
+        # Remove cached module and textual so the import runs fresh.
+        to_remove = [
+            k
+            for k in sys.modules
+            if k == 'cybergear.cli.dashboard' or k.startswith('textual')
+        ]
+        backup = {k: sys.modules.pop(k) for k in to_remove}
+
+        try:
+            with (
+                patch.dict(
+                    'sys.modules',
+                    {
+                        'textual': None,
+                        'textual.app': None,
+                        'textual.widgets': None,
+                        'textual.containers': None,
+                    },
+                ),
+                self.assertRaises(SystemExit) as ctx,
+            ):
+                importlib.import_module('cybergear.cli.dashboard')
+
+            self.assertEqual(ctx.exception.code, 1)
+        finally:
+            for k in [k for k in sys.modules if k == 'cybergear.cli.dashboard']:
+                sys.modules.pop(k, None)
+            sys.modules.update(backup)
 
 
 if __name__ == '__main__':
