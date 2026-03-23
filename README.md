@@ -10,9 +10,11 @@
 
 Python driver for the **[Xiaomi CyberGear](https://www.mi.com/cyber-gear)** brushless motor over CAN bus.
 
-Built on top of [python-can](https://python-can.readthedocs.io/). Tested with SocketCAN; custom polling threads are used instead of BCM to support other python-can interfaces as well. 
+Built on top of [python-can](https://python-can.readthedocs.io/). Tested with SocketCAN; custom polling threads are used instead of BCM to support other python-can interfaces as well.
 
 If you run into any issues, feel free to open an issue.
+
+> **Full documentation:** [grrodre.github.io/cybergear_python](https://grrodre.github.io/cybergear_python)
 
 ---
 
@@ -33,6 +35,22 @@ If you run into any issues, feel free to open an issue.
 - Python 3.10+
 - [python-can](https://python-can.readthedocs.io/) ≥ 4.4.2
 - A CAN interface supported by python-can (e.g. SocketCAN `can0` at 1 Mbit/s)
+
+---
+
+## Quick start
+
+Scan for motors on the bus:
+
+```bash
+uvx --from cybergear cybergear-scan
+```
+
+Launch the dashboard:
+
+```bash
+uvx --from cybergear[dashboard] cybergear-dashboard
+```
 
 ---
 
@@ -328,13 +346,14 @@ uv run ty check
 ## Hardware
 
 ![Four CyberGear motors wired](docs/imgs/cybergear_motors_mounted.jpg)
-*Four Xiaomi CyberGear motors connected to the CANable USB adapter over a shared CAN bus.*
+*My Xiaomi CyberGear motors connected to the CANable USB adapter over a shared CAN bus.*
 
 ### CAN USB adapter
 
-![CANable USB](docs/imgs/canable_usb.png)
-
-[CANable PRO — USB to CAN adapter](https://placeholder-link-canable)
+<figure>
+  <img src="docs/imgs/canable_usb.png" width="300"/>
+  <figcaption><a href="https://de.aliexpress.com/item/1005006032351087.html">CANable PRO — USB to CAN adapter</a></figcaption>
+</figure>
 
 Used to connect the CAN bus to a PC via USB. Bring up the interface at 1 Mbit/s:
 
@@ -345,9 +364,10 @@ sudo ip link set can0 up
 
 ### Motor cable
 
-![XT30 cable](docs/imgs/cable_xt30.png)
-
-[AMASS XT30(2+2) Xiaomi female cable for CyberGear](https://placeholder-link-xt30)
+<figure>
+  <img src="docs/imgs/cable_xt30.png" width="300"/>
+  <figcaption><a href="https://de.aliexpress.com/item/1005006046478152.html">AMASS XT30(2+2) Xiaomi female cable for CyberGear</a></figcaption>
+</figure>
 
 Power + signal cable required to connect the CyberGear motor (XT30 connector, 18 AWG power wires, 24 AWG signal wires).
 

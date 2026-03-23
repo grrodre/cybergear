@@ -1,10 +1,13 @@
 [project]
 name = "cybergear"
-version = "0.2.0"
+version = "0.1.1"
 description = "Python driver for the Xiaomi CyberGear brushless motor over CAN bus"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
+authors = [
+    { name = "Gregorio Rodrigo", email = "grrodre@gmail.com" },
+]
 classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",

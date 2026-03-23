@@ -26,6 +26,21 @@ theme:
     - content.code.copy
     - content.code.annotate
 
+extra:
+  generator: false
+  version:
+    default: "0.1.1"
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/grrodre/cybergear_python
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/cybergear
+
+copyright: "© 2026 Gregorio Rodrigo — <a href='https://github.com/grrodre/cybergear_python/blob/main/LICENSE'>MIT License</a>"
+
+plugins:
+  - search
+
 markdown_extensions:
   - admonition
   - pymdownx.highlight:
@@ -33,6 +48,7 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.inlinehilite
   - pymdownx.details
+  - pymdownx.snippets
   - tables
   - toc:
       permalink: true
@@ -45,3 +61,4 @@ nav:
   - Advanced: advanced.md
   - Examples: examples.md
   - Protocol reference: protocol.md
+  - Changelog: changelog.md

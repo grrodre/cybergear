@@ -8,9 +8,10 @@ from cybergear import CyberGearMotor
 with CyberGearMotor(can_id=0x01) as motor:
     motor.enable()
 
-    motor.quick_move(3.0)   # 3 rad/s
+    motor.quick_move(3.0)  # 3 rad/s
 
     import time
+
     time.sleep(2.0)
 
     motor.quick_stop()
@@ -32,7 +33,7 @@ with CyberGearMotor(can_id=0x01) as motor:
     motor.limit_spd = 10.0
     motor.limit_cur = 5.0
 
-    for target in [1.57, 3.14, 0.0]:   # 90°, 180°, back to 0
+    for target in [1.57, 3.14, 0.0]:  # 90°, 180°, back to 0
         motor.loc_ref = target
         time.sleep(1.5)
 
@@ -47,8 +48,10 @@ with CyberGearMotor(can_id=0x01) as motor:
 from cybergear import CyberGearMotor, MotorFeedback
 import time
 
+
 def on_feedback(fb: MotorFeedback) -> None:
     print(f'vel={fb.velocity:+.3f} rad/s  torque={fb.torque:+.3f} Nm  temp={fb.temperature:.1f} °C')
+
 
 with CyberGearMotor(can_id=0x01, poll_interval=0.1) as motor:
     motor.add_feedback_listener(on_feedback)
@@ -101,6 +104,7 @@ with CyberGearMotor(can_id=0x01) as motor:
 ```python
 from cybergear import CyberGearMotor, FaultState
 
+
 def on_fault(state: FaultState) -> None:
     if state.has_fault:
         print('--- FAULT ---')
@@ -115,6 +119,7 @@ def on_fault(state: FaultState) -> None:
     else:
         print('Fault cleared')
 
+
 with CyberGearMotor(can_id=0x01) as motor:
     motor.add_fault_listener(on_fault)
     motor.enable()
@@ -126,13 +131,20 @@ with CyberGearMotor(can_id=0x01) as motor:
 
 ---
 
-## Live parameter table (Rich terminal UI)
+## Dashboard
 
-The `examples/table.py` script displays all motor parameters in a live Rich
-table in the terminal:
+A TUI dashboard built with [Textual](https://textual.textualize.io/) that shows live feedback,
+some motor parameters, and quick move and stop. Useful to quick check the motor. Requires the `dashboard` extra:
 
 ```bash
-python examples/table.py
+pip install cybergear[dashboard]
+# or
+uv add cybergear[dashboard]
 ```
 
-![Motor values table](imgs/motor_values_table.png)
+```bash
+cybergear-dashboard
+cybergear-dashboard --interface socketcan --channel can0 --bitrate 1000000 --can-id 1
+```
+
+![CyberGear dashboard](imgs/cybergear-dashboard.gif)
