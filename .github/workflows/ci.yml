@@ -56,9 +56,7 @@ jobs:
       - run: uv build
 
       - name: Install wheel in clean environment and verify import
-        run: |
-          uv run --isolated --no-project pip install dist/*.whl
-          uv run --isolated --no-project python -c "import cybergear; print('import ok')"
+        run: uv run --with dist/*.whl --no-project python -c "import cybergear; print('import ok')"
 
       - uses: actions/upload-artifact@v4
         with:
