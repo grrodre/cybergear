@@ -179,6 +179,7 @@ dev = [
     { name = "mkdocs-material" },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "textual" },
     { name = "ty" },
 ]
 
@@ -195,6 +196,7 @@ dev = [
     { name = "mkdocs-material", specifier = ">=9.5" },
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "ruff", specifier = ">=0.6.2" },
+    { name = "textual", specifier = ">=0.80" },
     { name = "ty", specifier = ">=0.0.23" },
 ]
 

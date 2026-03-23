@@ -27,6 +27,7 @@ dev = [
     "pytest>=9.0.2",
     "ty>=0.0.23",
     "mkdocs-material>=9.5",
+    "textual>=0.80",
 ]
 
 [project.optional-dependencies]

@@ -370,7 +370,7 @@ class TestParameterTableParsing(unittest.TestCase):
         self.motor._parse_parameter_table_message(msg)
 
         self.assertAlmostEqual(
-            self.motor._parameters_table['gear_ratio'], expected, places=4
+            float(self.motor._parameters_table['gear_ratio']), expected, places=4
         )
 
     def test_parse_parameter_table_unknown_index_ignored(self):
@@ -579,7 +579,7 @@ class TestPollingThread(unittest.TestCase):
         mock_bus.send.side_effect = can.CanError('poll fail')
         motor.start_polling(0.05)
         time.sleep(0.2)  # allow several poll cycles with failures
-        self.assertIsNotNone(motor._poller)
+        assert motor._poller is not None
         self.assertTrue(motor._poller.is_alive())
         motor.stop_polling()
 
@@ -587,6 +587,7 @@ class TestPollingThread(unittest.TestCase):
         """stop_polling() causes the polling thread to exit cleanly."""
         motor, _ = _make_motor()
         motor.start_polling(0.05)
+        assert motor._poller is not None
         self.assertTrue(motor._poller.is_alive())
         motor.stop_polling()
         self.assertIsNone(motor._poller)
