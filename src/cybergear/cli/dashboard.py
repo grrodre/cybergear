@@ -129,7 +129,7 @@ class ParametersBox(Vertical):
         if name == 'rotation':
             gear_ratio = self._motor._parameters_table.get('gear_ratio')  # noqa: SLF001
             if gear_ratio:
-                out = value / gear_ratio
+                out = value / float(gear_ratio)
                 self.query_one('#param-rotation-out', Label).update(
                     _row('Rot (out)  ', f'{out:.2f}', '', is_number=True)
                 )
