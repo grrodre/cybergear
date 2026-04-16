@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 # Allow writing to gh-pages branch
 permissions:
   contents: write
@@ -16,7 +19,7 @@ jobs:
 
       - uses: astral-sh/setup-uv@v5
         with:
-          python-version-file: .python-version
+          python-version: "3.13"
 
       - run: uv sync --dev
 

@@ -5,6 +5,9 @@ on:
     tags:
       - "v*"   # triggers on v0.2.0, v1.0.0, etc.
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   lint:
     name: Lint
@@ -14,7 +17,7 @@ jobs:
 
       - uses: astral-sh/setup-uv@v5
         with:
-          python-version-file: .python-version
+          python-version: "3.13"
 
       - run: uv sync --dev
 
@@ -51,7 +54,7 @@ jobs:
 
       - uses: astral-sh/setup-uv@v5
         with:
-          python-version-file: .python-version
+          python-version: "3.13"
 
       - run: uv build
 
