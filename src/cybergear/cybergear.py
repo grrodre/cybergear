@@ -76,17 +76,17 @@ class _PollingThread(threading.Thread):
         super().__init__(daemon=True, name='cybergear-poller')
         self._poll_fn = poll_fn
         self._interval = interval
-        self._stop = threading.Event()
+        self._stop_event = threading.Event()
 
     def run(self) -> None:
-        while not self._stop.wait(self._interval):
+        while not self._stop_event.wait(self._interval):
             try:
                 self._poll_fn()
             except Exception:
                 logger.exception('Error in polling thread')
 
     def stop(self) -> None:
-        self._stop.set()
+        self._stop_event.set()
 
 
 class CyberGearMotor:
