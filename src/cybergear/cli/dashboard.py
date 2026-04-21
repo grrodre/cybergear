@@ -12,8 +12,8 @@ try:
 except ImportError:
     print(
         'Error: dashboard requires the dashboard extra.\n'
-        '  pip install cybergear[dashboard]\n'
-        '  uv add cybergear[dashboard]',
+        '  pip install python-cybergear[dashboard]\n'
+        '  uv add python-cybergear[dashboard]',
         file=sys.stderr,
     )
     sys.exit(1)

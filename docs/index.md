@@ -1,8 +1,8 @@
 # cybergear
 
-[![PyPI version](https://img.shields.io/pypi/v/cybergear.svg)](https://pypi.org/project/cybergear/)
-[![Python versions](https://img.shields.io/pypi/pyversions/cybergear.svg)](https://pypi.org/project/cybergear/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/grrodre/cybergear_python/blob/main/LICENSE)
+[![PyPI version](https://img.shields.io/pypi/v/python-cybergear.svg)](https://pypi.org/project/python-cybergear/)
+[![Python versions](https://img.shields.io/pypi/pyversions/python-cybergear.svg)](https://pypi.org/project/python-cybergear/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/grrodre/cybergear/blob/main/LICENSE)
 
 Python driver for the [Xiaomi CyberGear](https://www.mi.com/cyber-gear) brushless motor over CAN bus.
 
@@ -27,17 +27,17 @@ Built on top of [python-can](https://python-can.readthedocs.io/). Tested with So
 ## Quick install
 
 ```bash
-pip install cybergear
+pip install python-cybergear
 # or
-uv add cybergear
+uv add python-cybergear
 ```
 
 With the dashboard (requires [Textual](https://textual.textualize.io/) and Rich):
 
 ```bash
-pip install cybergear[dashboard]
+pip install python-cybergear[dashboard]
 # or
-uv add cybergear[dashboard]
+uv add python-cybergear[dashboard]
 ```
 
 Then read [Getting started](getting-started.md) to connect your first motor.

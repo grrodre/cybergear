@@ -3,13 +3,13 @@
 ## Installation
 
 ```bash
-pip install cybergear
+pip install python-cybergear
 ```
 
 Or with [uv](https://github.com/astral-sh/uv):
 
 ```bash
-uv add cybergear
+uv add python-cybergear
 ```
 
 ## CAN interface setup (Linux)

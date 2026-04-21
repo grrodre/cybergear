@@ -32,11 +32,11 @@ extra:
     default: "0.1.1"
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/grrodre/cybergear_python
+      link: https://github.com/grrodre/cybergear
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/cybergear
+      link: https://pypi.org/project/python-cybergear
 
-copyright: "© 2026 Gregorio Rodrigo — <a href='https://github.com/grrodre/cybergear_python/blob/main/LICENSE'>MIT License</a>"
+copyright: "© 2026 Gregorio Rodrigo — <a href='https://github.com/grrodre/cybergear/blob/main/LICENSE'>MIT License</a>"
 
 plugins:
   - search

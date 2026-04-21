@@ -137,9 +137,9 @@ A TUI dashboard built with [Textual](https://textual.textualize.io/) that shows 
 some motor parameters, and quick move and stop. Useful to quick check the motor. Requires the `dashboard` extra:
 
 ```bash
-pip install cybergear[dashboard]
+pip install python-cybergear[dashboard]
 # or
-uv add cybergear[dashboard]
+uv add python-cybergear[dashboard]
 ```
 
 ```bash
