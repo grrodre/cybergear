@@ -5,7 +5,7 @@
 [![CI](https://github.com/grrodre/cybergear/actions/workflows/ci.yml/badge.svg)](https://github.com/grrodre/cybergear/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-![CyberGear motors](docs/imgs/cybergear_motors.jpg)
+![CyberGear motors](https://raw.githubusercontent.com/grrodre/cybergear/main/docs/imgs/cybergear_motors.jpg)
 *My four Xiaomi CyberGear motors (photo © [grrodre](https://github.com/grrodre))*
 
 Python driver for the **[Xiaomi CyberGear](https://www.mi.com/cyber-gear)** brushless motor over CAN bus.
@@ -108,7 +108,7 @@ cybergear-dashboard
 cybergear-dashboard --interface socketcan --channel can0 --bitrate 1000000 --can-id 1
 ```
 
-![CyberGear dashboard](docs/imgs/cybergear-dashboard.gif)
+![CyberGear dashboard](https://raw.githubusercontent.com/grrodre/cybergear/main/docs/imgs/cybergear-dashboard.gif)
 
 ---
 
@@ -345,13 +345,13 @@ uv run ty check
 
 ## Hardware
 
-![Four CyberGear motors wired](docs/imgs/cybergear_motors_mounted.jpg)
+![Four CyberGear motors wired](https://raw.githubusercontent.com/grrodre/cybergear/main/docs/imgs/cybergear_motors_mounted.jpg)
 *My Xiaomi CyberGear motors connected to the CANable USB adapter over a shared CAN bus.*
 
 ### CAN USB adapter
 
 <figure>
-  <img src="docs/imgs/canable_usb.png" width="300"/>
+  <img src="https://raw.githubusercontent.com/grrodre/cybergear/main/docs/imgs/canable_usb.png" width="300"/>
   <figcaption><a href="https://de.aliexpress.com/item/1005006032351087.html">CANable PRO — USB to CAN adapter</a></figcaption>
 </figure>
 
@@ -365,7 +365,7 @@ sudo ip link set can0 up
 ### Motor cable
 
 <figure>
-  <img src="docs/imgs/cable_xt30.png" width="300"/>
+  <img src="https://raw.githubusercontent.com/grrodre/cybergear/main/docs/imgs/cable_xt30.png" width="300"/>
   <figcaption><a href="https://de.aliexpress.com/item/1005006046478152.html">AMASS XT30(2+2) Xiaomi female cable for CyberGear</a></figcaption>
 </figure>
 
