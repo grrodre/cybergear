@@ -161,46 +161,6 @@ wheels = [
 ]
 
 [[package]]
-name = "python-cybergear"
-version = "0.1.1"
-source = { editable = "." }
-dependencies = [
-    { name = "python-can" },
-]
-
-[package.optional-dependencies]
-dashboard = [
-    { name = "rich" },
-    { name = "textual" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "mkdocs-material" },
-    { name = "pytest" },
-    { name = "ruff" },
-    { name = "textual" },
-    { name = "ty" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "python-can", specifier = ">=4.4.2" },
-    { name = "rich", marker = "extra == 'dashboard'", specifier = ">=13.7" },
-    { name = "textual", marker = "extra == 'dashboard'", specifier = ">=0.80" },
-]
-provides-extras = ["dashboard"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "mkdocs-material", specifier = ">=9.5" },
-    { name = "pytest", specifier = ">=9.0.2" },
-    { name = "ruff", specifier = ">=0.6.2" },
-    { name = "textual", specifier = ">=0.80" },
-    { name = "ty", specifier = ">=0.0.23" },
-]
-
-[[package]]
 name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -573,6 +533,46 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/74/f9/a9d99d36dd33be5badb747801c9255c3c526171a5542092eaacc73350fb8/python_can-4.6.1.tar.gz", hash = "sha256:290fea135d04b8504ebff33889cc6d301e2181a54099116609f940825ffe5005", size = 1206049, upload-time = "2025-08-12T07:44:58.314Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/58/34/e4ac153acdbcfba7f48bc73d6586a74c91cc919fcc2e29acbf81be329d1f/python_can-4.6.1-py3-none-any.whl", hash = "sha256:17f95255868a95108dcfcb90565a684dad32d5a3ebb35afd14f739e18c84ff6c", size = 276996, upload-time = "2025-08-12T07:44:56.55Z" },
+]
+
+[[package]]
+name = "python-cybergear"
+version = "0.1.2"
+source = { editable = "." }
+dependencies = [
+    { name = "python-can" },
+]
+
+[package.optional-dependencies]
+dashboard = [
+    { name = "rich" },
+    { name = "textual" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "mkdocs-material" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "textual" },
+    { name = "ty" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "python-can", specifier = ">=4.4.2" },
+    { name = "rich", marker = "extra == 'dashboard'", specifier = ">=13.7" },
+    { name = "textual", marker = "extra == 'dashboard'", specifier = ">=0.80" },
+]
+provides-extras = ["dashboard"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mkdocs-material", specifier = ">=9.5" },
+    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "ruff", specifier = ">=0.6.2" },
+    { name = "textual", specifier = ">=0.80" },
+    { name = "ty", specifier = ">=0.0.23" },
 ]
 
 [[package]]
