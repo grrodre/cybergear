@@ -1,7 +1,7 @@
 # cybergear
 
-[![PyPI version](https://img.shields.io/pypi/v/cybergear.svg)](https://pypi.org/project/cybergear/)
-[![Python versions](https://img.shields.io/pypi/pyversions/cybergear.svg)](https://pypi.org/project/cybergear/)
+[![PyPI version](https://img.shields.io/pypi/v/python-cybergear.svg)](https://pypi.org/project/python-cybergear/)
+[![Python versions](https://img.shields.io/pypi/pyversions/python-cybergear.svg)](https://pypi.org/project/python-cybergear/)
 [![CI](https://github.com/grrodre/cybergear/actions/workflows/ci.yml/badge.svg)](https://github.com/grrodre/cybergear/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -14,7 +14,7 @@ Built on top of [python-can](https://python-can.readthedocs.io/). Tested with So
 
 If you run into any issues, feel free to open an issue.
 
-> **Full documentation:** [grrodre.github.io/cybergear_python](https://grrodre.github.io/cybergear_python)
+> **Full documentation:** [grrodre.github.io/cybergear](https://grrodre.github.io/cybergear)
 
 ---
 
@@ -43,13 +43,13 @@ If you run into any issues, feel free to open an issue.
 Scan for motors on the bus:
 
 ```bash
-uvx --from cybergear cybergear-scan
+uvx --from python-cybergear cybergear-scan
 ```
 
 Launch the dashboard:
 
 ```bash
-uvx --from cybergear[dashboard] cybergear-dashboard
+uvx --from python-cybergear[dashboard] cybergear-dashboard
 ```
 
 ---
@@ -57,21 +57,21 @@ uvx --from cybergear[dashboard] cybergear-dashboard
 ## Installation
 
 ```bash
-pip install cybergear
+pip install python-cybergear
 ```
 
 Or with [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uv add cybergear
+uv add python-cybergear
 ```
 
 To include the dashboard (requires [Textual](https://textual.textualize.io/) and Rich):
 
 ```bash
-pip install cybergear[dashboard]
+pip install python-cybergear[dashboard]
 # or
-uv add cybergear[dashboard]
+uv add python-cybergear[dashboard]
 ```
 
 ---
@@ -317,7 +317,7 @@ for can_id, device_id in motors:
 
 ```bash
 git clone https://github.com/grrodre/cybergear.git
-cd cybergear_python
+cd cybergear
 uv sync --dev
 ```
 
