@@ -1,4 +1,4 @@
-# cybergear
+# CyberGear Python Driver
 
 [![PyPI version](https://img.shields.io/pypi/v/python-cybergear.svg)](https://pypi.org/project/python-cybergear/)
 [![Python versions](https://img.shields.io/pypi/pyversions/python-cybergear.svg)](https://pypi.org/project/python-cybergear/)

@@ -21,6 +21,10 @@ dependencies = [
     "python-can>=4.4.2",
 ]
 
+[project.urls]
+Homepage = "https://grrodre.github.io/cybergear/"
+Repository = "https://github.com/grrodre/cybergear"
+
 [dependency-groups]
 dev = [
     "ruff>=0.6.2",
